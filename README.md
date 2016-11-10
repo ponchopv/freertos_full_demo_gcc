@@ -25,7 +25,7 @@ Setup for windows:
 
 Compile the project:
 
-1. Compile it with CCS.
+1. Compile it with CCS (ensure build.sh is executable).
 2. Alternatively run make all.
 
 Debug:
