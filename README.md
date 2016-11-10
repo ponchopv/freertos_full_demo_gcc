@@ -12,14 +12,16 @@ This project was designed to run in the MSP432P401R LaunchPad http://www.ti.com/
 Setup for linux:
 
 1. Download TI CCS and ensure you install the GCC compiler. http://www.ti.com/tool/ccstudio
+3. Rename the project to freertos_full_demo_gcc
 2. Import the project in CCS.
 
 Setup for windows:
 
 1. Download TI CCS and ensure you install the GCC compiler. http://www.ti.com/tool/ccstudio
-2. Import the project in CCS.
-3. Download cygwin
-4. Update the makefile to point to your compiler path.
+2. Rename the project to freertos_full_demo_gcc
+3. Import the project in CCS.
+4. Download cygwin
+5. Update the makefile to point to your compiler path.
 
 Compile the project:
 
