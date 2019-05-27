@@ -230,7 +230,7 @@ typedef enum IRQn
 #include "core_cm4.h"
 #pragma diag_pop
 #else
-#include "core_cm4.h"
+#include "d:\\ti\\ccsv8\\ccs_base\\arm\\include\\CMSIS\\core_cm4.h"
 #endif
 
 /* System Header */

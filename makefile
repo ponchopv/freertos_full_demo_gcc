@@ -10,18 +10,52 @@ $(info Using Device MSP432P401R as default)
 
 
 #======================= Environment setup =======================
-RM := rm -rf
-MKDIR = mkdir -p -- $@
-DEVICE=MSP432P401R
-OUTPUT_DIR := output
-BASE_DIR := /opt/ti/ccsv6/ccs_base
-COMPILER_DIR := /opt/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_9-2015q3
-TI_DRVLIB_DIR := ./driverlib
-TI_DRVLIB_LIB_DIR := $(TI_DRVLIB_DIR)/gcc
-TI_DRVLIB_LIB := msp432
-GCC_MSP_INC_DIR ?= $(BASE_DIR)/arm/include
-GCC_CMSIS_INC_DIR ?= $(GCC_MSP_INC_DIR)/CMSIS
-LDDIR := $(GCC_MSP_INC_DIR)/$(shell echo $(DEVICE) | tr A-Z a-z)
+ifeq ($(OS),Windows_NT) #Windows setup with cygwin toolchain
+   RM := rm -rf
+   MKDIR = mkdir -p -- $@
+   DEVICE=MSP432P401R
+   OUTPUT_DIR := output
+   BASE_DIR := d:/ti/ccsv8/ccs_base
+   #BASE_DIR := /cygdrive/d/ti/ccsv8/ccs_base
+   COMPILER_DIR := /cygdrive/d/ti/ccsv8/tools/compiler/gcc-arm-none-eabi-7-2017-q4-major-win32
+   TI_DRVLIB_DIR := ./driverlib
+   TI_DRVLIB_DIR_INC := ./driverlib/inc
+   TI_DRVLIB_LIB_DIR := $(TI_DRVLIB_DIR)/gcc
+   TI_DRVLIB_LIB := msp432
+   GCC_MSP_INC_DIR ?= $(BASE_DIR)/arm/include
+   GCC_CMSIS_INC_DIR ?= $(GCC_MSP_INC_DIR)/CMSIS
+   LDDIR := $(GCC_MSP_INC_DIR)/$(shell echo $(DEVICE) | tr A-Z a-z)
+   
+   #======================= Compiler executable =======================
+   GCC_BIN_DIR ?= $(COMPILER_DIR)/bin
+   GCC_INC_DIR ?= $(COMPILER_DIR)/arm-none-eabi/include
+   #=======================
+   CC := $(GCC_BIN_DIR)/arm-none-eabi-gcc.exe
+   GDB := $(GCC_BIN_DIR)/arm-none-eabi-gdb.exe
+   
+else #Linux Setup
+   RM := rm -rf
+   MKDIR = mkdir -p -- $@
+   DEVICE=MSP432P401R
+   OUTPUT_DIR := output
+   BASE_DIR := /opt/ti/ccsv6/ccs_base
+   COMPILER_DIR := /opt/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_9-2015q3
+   TI_DRVLIB_DIR := ./driverlib
+   TI_DRVLIB_DIR_INC := ./driverlib/inc
+   TI_DRVLIB_LIB_DIR := $(TI_DRVLIB_DIR)/gcc
+   TI_DRVLIB_LIB := msp432
+   GCC_MSP_INC_DIR ?= $(BASE_DIR)/arm/include
+   GCC_CMSIS_INC_DIR ?= $(GCC_MSP_INC_DIR)/CMSIS
+   LDDIR := $(GCC_MSP_INC_DIR)/$(shell echo $(DEVICE) | tr A-Z a-z)
+   
+   #======================= Compiler executable =======================
+   GCC_BIN_DIR ?= $(COMPILER_DIR)/bin
+   GCC_INC_DIR ?= $(COMPILER_DIR)/arm-none-eabi/include
+   #=======================
+   CC := $(GCC_BIN_DIR)/arm-none-eabi-gcc
+   GDB := $(GCC_BIN_DIR)/arm-none-eabi-gdb
+   
+endif
 
 #======================= Path Setup =======================
 OS_DIR := ./FreeRTOS
@@ -62,22 +96,21 @@ OS_MEM_MGR := $(OS_MEM_MGR_DIR)/heap_2.c
    FULL_DEMO_INCLUDES += -I ./FreeRTOS-Plus/Source/FreeRTOS-Plus-CLI
 
 
-#======================= Compiler executable =======================
-GCC_BIN_DIR ?= $(COMPILER_DIR)/bin
-GCC_INC_DIR ?= $(COMPILER_DIR)/arm-none-eabi/include
-#=======================
-CC := $(GCC_BIN_DIR)/arm-none-eabi-gcc
-GDB := $(GCC_BIN_DIR)/arm-none-eabi-gdb
 #======================= Compiler parameters =======================
-INCLUDES := -I $(GCC_CMSIS_INC_DIR) -I $(GCC_MSP_INC_DIR) -I $(GCC_INC_DIR) \
--I $(OS_INCLUDE) -I $(TI_DRVLIB_DIR) -I $(OS_PORT) -I $(OS_DEMO_COMMON_INC_DIR)\
--I $(DEMO_PATH) $(FULL_DEMO_INCLUDES)
-CFLAGS := -mcpu=cortex-m4 -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16\
- -mthumb -D__$(DEVICE)__ -DTARGET_IS_MSP432P4XX -Dgcc $(FREE_RTOS_FULL_DEMO)\
-  -g -gstrict-dwarf -Wall -ffunction-sections -fdata-sections -MD -std=c99 
-LDFLAGS = -mcpu=cortex-m4 -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16\
- -mthumb -D__$(DEVICE)__ -DTARGET_IS_MSP432P4XX -Dgcc -g -gstrict-dwarf -Wall\
-  -T$(LDDIR).lds -l'c' -l'gcc' -l'nosys'
+INCLUDES += -I $(GCC_CMSIS_INC_DIR) -I $(GCC_MSP_INC_DIR) -I $(GCC_INC_DIR)
+INCLUDES += -I $(OS_INCLUDE) -I $(TI_DRVLIB_DIR) -I $(TI_DRVLIB_DIR_INC) 
+INCLUDES += -I $(OS_PORT) -I $(OS_DEMO_COMMON_INC_DIR) 
+INCLUDES += -I $(DEMO_PATH) $(FULL_DEMO_INCLUDES)
+
+CFLAGS += -mcpu=cortex-m4 -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16
+CFLAGS += -mthumb -D__$(DEVICE)__ -DTARGET_IS_MSP432P4XX -Dgcc $(FREE_RTOS_FULL_DEMO)
+CFLAGS += -g -gstrict-dwarf -Wall -ffunction-sections -fdata-sections -MD -std=c99
+CFLAGS += -DNO_MSP_CLASSIC_DEFINES 
+
+LDFLAGS += -mcpu=cortex-m4 -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16
+LDFLAGS += -mthumb -D__$(DEVICE)__ -DTARGET_IS_MSP432P4XX -Dgcc -g -gstrict-dwarf -Wall
+LDFLAGS += -T$(LDDIR).lds -l'c' -l'gcc' -l'nosys'
+LDCFLAGS += -DNO_MSP_CLASSIC_DEFINES
 
 # Uncomment when the precompiled library is used.
 #LDFLAGS += -L$(TI_DRVLIB_LIB_DIR) -l'$(TI_DRVLIB_LIB)'
@@ -138,19 +171,17 @@ $(PROJ_OUT): | $(OUTPUT_DIR)
 
 $(OUTPUT_DIR):
 	@$(MKDIR) $(OBJ_DIRS)
-	@echo $(OBJ_DIRS)
 	@echo ============================================
-	@echo $(OBJ_OUT)
 
 $(OUTPUT_DIR)/%.o : %.c
 	@echo ============================================
 	@echo Generating $@
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@	
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@	
 
 $(OUTPUT_DIR)/$(PROJ_OUT).out : . $(OBJ_OUT)
 	@echo ============================================
 	@echo Linking objects and generating output binary
-	$(CC) $(OBJ_OUT) $(LDFLAGS) -o $@ $(INCLUDES)
+	@$(CC) $(OBJ_OUT) $(LDFLAGS) -o $@ $(INCLUDES)
 
 
 debug: all
